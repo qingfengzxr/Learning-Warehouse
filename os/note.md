@@ -32,3 +32,10 @@
 
 * Linux: ELF (Executable and Linking Format)  
 * windows: PE (Portable executable)
+
+
+
+操作系统如何识别文件系统呢：一种文件系统对应一个魔数，通过比对此值便知道文件系统类型了。
+
+BIOS->MBR(主引导记录,Master/Main Boot Record)->OBR(操作系统引导记录OS Boot Record)此后便是内核管理了。
+
