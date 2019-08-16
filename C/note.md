@@ -30,3 +30,34 @@ struct  bit_struct
 
 [详细示例]：<https://blog.csdn.net/yihongxiaoxiang/article/details/50327587>
 
+
+
+#### 一些实用的写法
+
+```c
+#define CHECK_STATE_FLAG(flag, state)\
+    do{\
+        if(flag != state)\
+        {\
+            printf("func:%s,line:%d,flag statue fail\n",__FUNCTION__,__LINE__);\
+            return FAILURE;\
+        }\
+    }while(0)
+//仔细体会这个函数宏，真的是一种非常巧妙的用法，尽管功能简单，却能够在各处有需要的地方调用，
+//并显示所在位置。就像面向对象语言中的错误处理，错误抛出一样实用。
+#define UARTMSG_LOCK()   pthread_mutex_lock(&g_tUartMsgMutex);
+#define UARTMSG_UNLOCK() pthread_mutex_unlock(&g_tUartMsgMutex);
+//这只是一个简单的宏定义用法，但事实上，当代码里充斥着这种编写风格与思想时，代码的可阅读性确实
+//有很大的提高。
+// 短整型大小端互换
+#define BigLittleSwap16(A)  ((((short int)(A) & 0xff00) >> 8) | \
+                             (((short int)(A) & 0x00ff) << 8))
+// 长整型大小端互换
+#define BigLittleSwap32(A)  ((((long int)(A)  & 0xff000000) >> 24) | \
+                             (((long int)(A)  & 0x00ff0000) >> 8) | \
+                             (((long int)(A)  & 0x0000ff00) << 8) | \
+                             (((long int)(A)  & 0x000000ff) << 24))
+
+
+```
+
