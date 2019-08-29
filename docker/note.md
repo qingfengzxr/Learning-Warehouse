@@ -59,9 +59,61 @@ $  sudo docker push user/test:latest
 
 
 
-* Docker容器
+* **Docker容器**
 
 类似于一个轻量级的沙箱，Docker利用容器来运行和隔离应用。容器是从镜像创建的应用运行实例，可以将其启动、开始、停止、删除，而这些容器是**相互隔离、不可见的**。
+
+Docker带有**额外的可写文件层**。如果认为虚拟机是模拟运行的一整套操作系统（提供了运行态环境和其他系统环境）和跑在上面的应用。那么Docker容器就是独立运行的一个或一组应用，以及他们的必须环境。
+
+**新建与启动容器**
+
+```shell
+#使用docker create可以新建一个容器.使用该命令创建的容器处于停止状态，可以使用docker start命令来启动它
+$  sudo docker create -it ubuntu:latest
+#使用docker run等价于先执行docker create 再执行 docker start
+#下面的命令输出一个hello world ，之后容器将自动终止
+$  sudo docker run ubuntu /bin/echo 'hello world'
+```
+
+**使用docker run创建容器，后台运行的标准操作**包括：
+
+1. 检查本地是否存在指定的镜像，不存在则从公有仓库下载
+2. 利用镜像创建并启动一个容器
+3. 分配一个文件系统，并在只读的镜像层外面挂载一层可读写层
+4. 从宿主主机配置的网桥接口中桥接一个虚拟接口到容器中去
+5. 从地址池配置一个IP地址给容器
+6. 执行用户指定的应用程序
+7. 执行完毕后容器被终止
+
+```shell
+#下面命令将启动一个bash终端，并允许用户交互
+$  sudo docker run -t -i ubuntu:14.04 /bin/bash 
+#使用-t选项可以让Docker分配一个伪终端并绑定到容器的标准输入上
+#使用-i选型可以让容器的标准输入保持打开
+```
+
+_Docker容器认为，当运行的应用退出后，容器也没有了继续运行的必要_
+
+**守护态运行**
+
+```shell
+$  sudo docker run -d ubuntu /bin/sh -c "while true;do echo hello world;sleep 1;done"
+# -d选项能够让容器在后台以守护态形式运行
+```
+
+**终止容器**
+
+```
+#可以使用docker stop来终止一个运行中的容器
+```
+
+
+
+
+
+
+
+
 
 * Docker仓库
 
