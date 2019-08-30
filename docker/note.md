@@ -103,11 +103,41 @@ $  sudo docker run -d ubuntu /bin/sh -c "while true;do echo hello world;sleep 1;
 
 **终止容器**
 
-```
+```shell
 #可以使用docker stop来终止一个运行中的容器
+$  sudo docker stop ce5
 ```
 
+**进入容器**
 
+```shell
+$  sudo docker attach nostalgic_hypatia
+#使用attach命令，当多个窗口同时attach到同一个容器时，所有的窗口都会同步显示，一个窗口阻塞全都阻塞
+$  sudo docker exec -ti 243c32535da7 /bin/bash
+#exec能避免attach的问题
+$  sudo nsenter --target 10981 --mount --uts --ipc --net --pid
+#为了使用nsenter连接到容器，还需要找到容器的进程PID
+```
+
+**删除容器**
+
+```shell
+$  sudo docker rm [OPTIONS] CONTAINER [CONTAINER...]
+# -f, --force=flase强行终止并删除一个运行中的容器
+# -l, --link=flase删除容器的连接，但保留容器
+# -v, --volumes=false 删除容器挂载的数据卷
+```
+
+**导入和导出容器**
+
+```shell
+$  sudo docker export CONTAINER
+$  sudo docker export ce5 >test_for_run.tar  #导出容器ce5到test_for_run.tar文件
+$  cat test_for_run.tar | sudo docker import - test/ubuntu:v1.0  
+#导出的文件可以用docker import 命令导入，成为镜像
+```
+
+实际上，既可以使用docker load命令来导入镜像存储文件到本地的镜像库，又可以使用docker import命令来导入一个容器快照到本地镜像库。二者的区别在于容器快照文件将丢弃所有历史记录和元数据信息（即仅保存容器当时的快照状态），而镜像存储文件将保存完整记录，体积也比较大。
 
 
 
