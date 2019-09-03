@@ -1,6 +1,6 @@
 #### 重要概念：
 
-* **Docker镜像**
+#### Docker镜像
 
 类似于虚拟机镜像，可以将它理解为一个面向Docker引擎的只读模板，包含了文件系统。镜像是创建Docker容器的基础。通过版本管理和增量的文件系统，Docker提供了一套十分简单的机制来创建和更新现有的镜像。
 
@@ -59,7 +59,7 @@ $  sudo docker push user/test:latest
 
 
 
-* **Docker容器**
+#### Docker容器
 
 类似于一个轻量级的沙箱，Docker利用容器来运行和隔离应用。容器是从镜像创建的应用运行实例，可以将其启动、开始、停止、删除，而这些容器是**相互隔离、不可见的**。
 
@@ -143,7 +143,7 @@ $  cat test_for_run.tar | sudo docker import - test/ubuntu:v1.0
 
 
 
-* **Docker仓库**
+#### Docker仓库
 
 类似于代码仓库，是Docker集中存放镜像文件的场所。
 
