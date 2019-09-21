@@ -26,3 +26,73 @@ fmt.Println(cap(b))  //16
 
 原因：切片在追加元素时如果容量cap不足，将按len的2倍扩容。
 
+
+
+2. 什么是并发？什么是并行？
+
+这是两个不同的概念，不可混为一谈。
+
+并发：意味着程序在单位时间内是同时运行的，具有过程性
+
+并行：意味着程序在任意时刻都是同时运行的，具有瞬时性
+
+
+
+3.读取已经关闭的通道会怎样？
+
+通道关闭后，依然可以对通道进行读取，通道内还有元素时返回通道内的元素，否则返回通道元素类型的零值。
+
+
+
+4.下面代码中的异步并发如何实现的？
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+type query struct {
+	sql chan string
+	result chan string
+}
+
+func execQuery(q query){
+	go func(){
+		sql := <-q.sql
+
+		q.result <- "result from" + sql
+	}()
+}
+
+func main(){
+	q := query{make(chan string,1),make(chan string,1)}
+
+	go execQuery(q)
+	q.sql <- "select * from table"
+	time.Sleep(6*time.Second)
+	fmt.Println(<-q.result)
+}
+```
+
+go线程中通过<- 读通道，在没有数据写入通道时，将一直阻塞。从而实现异步并发。
+
+**问题所涉及的通道知识：**
+
+阻塞：
+
+1. 向未初始化的通道写入数据或者读数据都会导致当前goroutine的永久阻塞
+2. 向缓冲区已满的通道写入数据会导致goroutine阻塞
+3. 通道中没有数据，读取该通道会导致gotoutine阻塞
+
+非阻塞：
+
+1. 读取已经关闭的通道不会引发阻塞，而是立即返回通道元素类型的零值，可以使用comma,ok语法判断通道是否已经关闭
+2. 向有缓冲且没有满的通道读/写不会引发通道阻塞
+
+panic:
+
+1. 向已经关闭的通道写数据会导致panic
+2. 重复关闭的通道会导致panic
