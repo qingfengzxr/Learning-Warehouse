@@ -15,6 +15,9 @@ respectively   [adv]分别地；各自地；顺序为
 stretch    [n]一片；一段；一泓；一段时间   [v]拉长；拉紧；伸展；
 misplaced  [adj]不合时宜的；不适宜的；不该给的；错位的   [v]乱放；随意搁置；
 identification  [n]鉴定；辨认；确认；
+Smooth     [adj]平整的；光滑的；  [v]使平坦；使平整；
+alternate  [n]候补者；代理人；  [adj]交替的；
+Prototype  [n]原型
 ```
 
 
