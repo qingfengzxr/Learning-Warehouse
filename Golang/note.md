@@ -18,6 +18,27 @@ out,err := os.Create(outfile)
 
 
 
+#### slice
+
+```go
+//slice操作符s[i:j]
+//数据结构如下
+// src/runtime/slice.go(go.19.1)
+type slice struct{
+    array unsafe.Pointer //指向底层数组的指针
+    len int //slice元素数量
+    cap int //底层数组的容量
+}
+```
+
+1. 如果slice的引用超过了被引用对象的容量，即cap(s),那么会导致程序宕机；但是如果slice的引用超出了被引用对象的长度，即len(s),那么最终slice会比原slice长。
+
+2. 和数组不同的是，slice无法作比较，因此不能用 == 来检测两个slice是否含有相同的元素。
+3. slice需要做深度比较，因此不能用slice作为map的键。
+4. slice唯一允许的比较操作是和nil做比较。slice类型的零值是nil。值为nil的slice没有对应的底层数组。值得注意的是：值为nil的slice长度和容量都是零，但是也有非nil的slice长度和容量也是零，例如[]int{}或者make([]int,3)[3:0]。
+
+
+
 #### 函数
 
 * 函数定义
