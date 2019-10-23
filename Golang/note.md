@@ -209,5 +209,42 @@ type File struct{
 
 
 
+#### 方法
+
+```go
+//方法的声明和普通函数的声明类似，只是在函数名字前面多了一个参数。这个参数把这个方法绑定到这个参数对应的类型上。
+package geometry
+import "math"
+
+type Point struct{X,Y float64}
+
+//普通的函数
+func Distance(p,q Point) float64 {
+    return math.Hypot(q.X-p.X,q.Y-p.Y)
+}
+
+//Point类型的方法
+func (p Point) Distance(q Point) float64{
+    return math.Hypot(q.X-p.X,q.Y-p.Y)
+}
+//附加的参数p,称为方法的接收者，用来描述主调方法就像向对象发送消息。
+//调用方法的时候，接收者在方法名的前面。这样就和声明保持一致。
+
+//上面两个Distance函数声明没有冲突。
+//第一个声明一个包级别的函数，称为 geometry.Distance 
+//第二个声明一个类型Point的方法，因此它的名字是Point.Distance
+```
+
+1. 由于方法和字段来自于同一个命名空间，因此在Point结构类型中声明一个叫做X的方法会与字段X冲突，编译器会报错。
+2. GO和许多其他面向对象的语言不同，它可以将方法绑定到任何类型上。同一个包下的任何类型都可以声明方法，只要它的类型既不是指针类型也不是接口类型。
+3. 不允许本身是指针的类型进行方法声明。
+4. 在任何方法的接收者是指针的情况下，应该避免复制T的实例，因为这么做可能会破坏内部原本的数据。
+
+
+
+
+
+
+
 
 
