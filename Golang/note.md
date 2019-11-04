@@ -189,6 +189,10 @@ a := Person{
     name:"andes",
     age:18}
 //初始化语句的末尾的‘}’独占一行时，最后一个字段的后面一定要带上逗号
+
+type Apple struct{int}
+f := Apple{3}
+fmt.Println(f)//#输出{3}
 ```
 
 * 匿名字段
@@ -241,6 +245,16 @@ func (p Point) Distance(q Point) float64{
 4. 在任何方法的接收者是指针的情况下，应该避免复制T的实例，因为这么做可能会破坏内部原本的数据。
 
 
+
+#### 接口
+
+```go
+//一个接口类型定义了一套方法，如果一个具体类型要实现该接口，那么必须实现接口类型定义中的所有方法
+//
+type Reader interface{
+    Read(p []byte)(n int,err error)
+}
+```
 
 
 
