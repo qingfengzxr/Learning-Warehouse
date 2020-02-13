@@ -1772,3 +1772,234 @@ RENAME TABLE backup_customers TO customers,
 			 backup_products TO products;
 ```
 
+
+
+### 视图
+
+视图是虚拟的表。与包含数据的表不一样，视图只包含使用时动态检索数据的查询。
+
+**作为视图，它不包含表中应该有的数据，它包含的是一个SQL查询。**
+
+**视图仅仅是用来查看存储在别处的数据的一种设施。视图本身不包含数据，因此它们返回的数据是从其他表中检索出来的。在添加或更改这些表中的数据时，视图将返回改变后的数据。**
+
+**视图提供了一种MySQL的`SELECT`语句层次的封装，可用来简化数据处理及重新格式化基础数据或保护基础数据。**
+
+* 为什么使用视图
+
+1. 重用SQL语句。
+2. 简化复杂的SQL操作。在编写查询后，可以方便地重用它而不必知道它的基本查询细节。
+3. 使用表的组成部分而不是整个表。
+4. 保护数据。可以给用户授予表的特定部分的访问权限而不是整个表的访问权限。
+5. 更改数据格式和表示。视图可返回与底层表的表示和格式不同的数据。
+
+
+
+* 视图的规则和限制
+
+1. 与表一样，视图必须唯一命名。
+2. 对于可以创建的视图数目没有限制。
+3. 为了创建视图，必须具有足够的访问权限。这些限制通常由数据库管理人员授予。
+4. 视图可以嵌套，即可以利用从其他视图中检索数据的查询来构造一个视图。
+5. `ORDER BY`可以用在视图中，但如果从该视图检索数据的`SELECT`语句中也含有`ORDER BY`，那么该视图中的`ORDER BY`将被覆盖。
+6. 视图不能索引，也不能有关联的触发器或默认值。
+7. 视图可以和表一起使用。例如，编写一条联结表和视图的`SELECT`语句。
+
+
+
+* 使用视图
+
+1. 视图使用`CREATE VIEW`创建。
+2. 使用`SHOW CREATE VIEW viewname;`来查看创建视图的语句。
+3. 用`DROP`删除视图，其语法为`DROP VIEW viewname;`。
+4. 更新视图时，可以先用`DROP`再用`CREATE`,也可以直接用`CREATE OR REPLACE VIEW`，如果更新的视图不存在，则创建一个视图，如果存在，则替换视图。
+
+**如果从视图中检索数据时使用了一条`WHERE`子句，则两组子句(一组在视图中，另一组是传递给视图的)将自动结合**。
+
+**视图主要用于检索数据，而不用于更新数据**。
+
+```mysql
+CREATE VIEW productcustomers AS
+SELECT cust_name,cust_contact,prod_id
+FROM customers,orders,orderitems
+WHERE customers.cust_id = orders.cust_id
+  AND orderitems.order_num = orders.order_num;
+```
+
+说明：这条语句创建了一个名为`productcustomers`的视图，它联结三个表，以返回已订购了任意产品的所有客户的列表。为检索订购了产品TNT2的客户，可使用如下语句：
+
+```mysql
+SELECT cust_name,cust_contact
+FROM productcustomers
+WHERE prod_id = 'TNT2';
+```
+
+示例输出：
+
+```shell
++----------------+--------------+
+| cust_name      | cust_contact |
++----------------+--------------+
+| Coyote Inc.    | Y Lee        |
+| Yosemite Place | Y Sam        |
++----------------+--------------+
+```
+
+ 
+
+* 更新视图
+
+可以使用`INSERT`、`UPDATE`、`DELETE`对视图进行更新。不过更新一个视图将更新其基表，如果对视图增加或删除行，实际上是对其基表增加或删除行。
+
+但并不是所有视图都可以更新，如果视图定义中有以下操作，则不能进行更新：
+
+1. 分组(使用`GROUP BY`和`HAVING`)；
+2. 联结；
+3. 子查询；
+4. 并；
+5. 聚集函数；
+6. DISTINCT；
+7. 导出 (计算) 列。
+
+
+
+### 存储过程
+
+存储过程简单来说，就是为以后的使用而保存的一条或多条MySQL语句的集合。
+
+
+
+* 为什么使用存储过程
+
+1. 通过把处理封装在容易使用的单元中，简化复杂的操作(正如前面例子所述)。
+2. 由于不要求反复建立一系列处理步骤，这保证了处理的统一性，也就保证了数据的完整性。
+3. 简化对变动的管理。如果表名、列名或业务逻辑有变化，只需要更改存储过程的代码即可。
+
+(2 和 3 在一定的程度上来说都可以延伸为安全性。通过存储过程限制对基础数据的访问减少数据讹误的机会)
+
+4. 提高性能。使用存储过程比使用单独的SQL语句要快。
+5. 存在一些只能用在单个请求中的MySQL元素和特性，存储过程可以使用它们来编写功能更强更灵活的代码。
+
+
+
+* 执行存储过程
+
+MySQL称存储过程的执行为调用，MySQL执行存储过程的语句为`CALL`。`CALL`接受存储过程的名字以及需要传递给它的任意参数。
+
+```mysql
+CALL 存储过程名(@param_1,
+              @param_2,
+              @param_3);
+```
+
+
+
+* 创建存储过程
+
+```mysql
+CREATE PROCEDURE 存储过程名()
+BEGIN
+	待执行的SQL语句
+END;
+```
+
+示例:
+
+```mysql
+CREATE PROCEDURE productpricing()
+BEGIN
+	SELECT Avg(prod_price) AS priceaverage
+	FROM products;
+END;
+```
+
+
+
+* 删除存储过程
+
+```mysql
+DROP PROCEDURE productpricing;
+```
+
+
+
+
+
+* 注意事项--mysql命令行客户机的分隔符
+
+默认的MySQL语句分隔符为`；`。因为存储过程中的语句中也以`;`作为结束，因此在命令行客户机中使用`END；`时，应临时更改命令行实用程序的语句分隔符，稍作修改，如示：
+
+```mysql
+DELIMITER	//
+CREATE PROCEDURE productpricing()
+BEGIN
+	SELECT Avg(prod_price) AS priceaverage
+	FROM products;
+END	//
+
+DELIMITER ;
+```
+
+说明：`DELIMITER` 可以告诉命令行使用程序使用其所带符号作为新的语句结束分隔符。
+
+
+
+* 使用参数
+
+**变量**：内存中一个特定的位置，用来临时存储数据。
+
+**变量名**：所有MySQL变量都必须以@开始。
+
+```mysql
+CREATE PROCEDURE productpricing(
+	OUT pl DECIMAL(8,2),
+    OUT ph DECIMAL(8,2),
+    OUT pa DECIMAL(8,2)
+)
+
+BEGIN 
+	SELECT Min(prod_price)
+	INTO pl
+	FROM products;
+	SELECT Max(prod_price)
+	INTO ph
+	FROM products;
+	SELECT Avg(prod_price)
+	INTO pa
+	FROM products;
+END;
+```
+
+说明：
+
+此存储过程接受三个参数。在创建带参数的存储过程时，每个参数必须具有指定的类型。关键字`OUT`指出相应的参数用来从存储过程传出一个值(返回给调用者)。MySQL支持`IN`（传递给存储过程）、`OUT` (从存储过程传出一个值，返回给调用者)和`INOUT`(对存储过程传入和传出)类型的参数。存储过程位于`BEGIN`和`END`语句内。
+
+```mysql
+CALL productpricing(@pricelow,
+                    @pricehigh,
+                   	@priceaverage);
+```
+
+说明：在调用时，这条语句并不显示任何数据。它返回以后可以显示(或在其他处理中使用)的变量。
+
+
+
+* 建立智能存储过程
+
+存储过程可以包含业务规则和处理逻辑。这将使得存储过程更加的智能。
+
+
+
+* 检查存储过程
+
+可以使用`SHOW CREATE PROCEDURE`来显示一个创建存储过程的语句。
+
+```mysql
+SHOW CREATE PROCEDURE productpricing;
+```
+
+如果要获得包括何时、由谁创建等详细信息的存储过程列表，可以使用`SHOW PROCEDURE STATUS`。
+
+```mysql
+SHOW PROCEDURE STATUS LIKE 'productpricing';
+```
+
