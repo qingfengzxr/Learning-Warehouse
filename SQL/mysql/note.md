@@ -2003,3 +2003,195 @@ SHOW CREATE PROCEDURE productpricing;
 SHOW PROCEDURE STATUS LIKE 'productpricing';
 ```
 
+
+
+### 游标
+
+游标(cursor)是一个存储在MySQL服务器上的数据库查询，它不是一条`SELECT`语句，而是被该语句检索出来的结果集。在存储了游标之后，应用程序可以根据需要滚动或浏览其中的数据。游标主要用户交互式应用。
+
+
+
+* 使用游标
+
+使用游标涉及几个明确的步骤。
+
+1. 在能够使用游标前，必须声明(定义)它。这个过程实际上没有检索数据，它只是定义要使用的`SELECT`语句。
+2. 一旦声明后，必须打开游标以供使用。这个过程用前面定义的`SELECT`语句把数据实际检索出来。
+3. 对于填有数据的游标，根据需要取出(检索各行)。
+4. 在结束游标使用时，必须关闭游标。
+
+
+
+* 创建游标
+
+游标用`DECLARE`语句创建。`DECLARE`命名游标，并定义相应的`SELECT`语句，根据需要带`WHERE`和其他子句。例如，下面的语句定义了名为`ordernumbers`的游标，使用了可以检索所有订单的`SELECT`语句。
+
+**DECLARE语句的次序**：`DECLARE`语句的发布存在特定的次序。用`DECLARE`语句定义的局部变量必须在定义任意游标或句柄之前定义，而句柄必须在游标之后定义。
+
+```mysql
+CREATE PROCEDURE processorders()
+BEGIN 	
+	DECLARE ordernumbers CURSOR
+	FOR
+	SELECT order_num FROM orders;
+END;
+```
+
+说明：这个游标在存储过程处理完成后消失，它局限于存储过程。
+
+
+
+* 打开和关闭游标
+
+```mysql
+OPEN 游标名;#打开游标
+CLOSE 游标名;#关闭游标
+```
+
+**如果不明确关闭游标，MySQL将会在到达`END`语句时自动关闭它**。
+
+
+
+* 使用游标数据
+
+在一个游标被打开后，可以使用`FETCH`语句分别访问它的每一行。`FETCH`指定检索什么数据(所需的列)，检索出来的数据存储在什么地方。它还向前移动游标中的内部行指针，使下一条`FETCH`语句检索下一行(不重复读取同一行)。
+
+```mysql
+CREATE PROCEDURE local processorders()
+BEGIN
+	--Declare local variables
+	DECLARE done BOOLEAN DEFAULT 0;
+	DECLARE o INT;
+	
+	--Declare the cursor
+	DECLARE ordernumbers CURSOR
+	FOR
+	SELECT order_num FROM orders;
+	--Declare continue handler
+	DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done=1;
+	
+	--Open the cursor
+	OPEN ordernumbers;
+	
+	--Loop through all rows
+	REPEAT
+		--Get order number
+		FETCH ordernumbers INTO o;
+		
+	--End of Loop
+	UNTIL done END REPEAT;
+	
+	--Close the cursor
+	CLOSE ordernumbers;
+END;
+```
+
+说明：这里需要着重说明下语句：
+
+```mysql
+DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done=1;
+```
+
+这条语句定义了一个`CONTINUE HANDLER`,它是在条件出现时被执行的代码。它指出当`SQLSTATE '02000'`出现时，`SET done=1`。`SQLSTATE '02000'`是一个未找到条件，当`REPEAT`由于没有更多的行供循环而不能继续时，出现这个条件。
+
+
+
+### 触发器
+
+触发器是MySQL响应以下任意语句而自动执行的一条MySQL语句(或位于`BEGIN`和`END`语句之间的一组语句):
+
+1. `DELETE`
+2. `INSERT`
+3. `UPDATE`
+
+**只有表才支持触发器，视图不支持(临时表也不支持)**。
+
+**触发器按每个表每个事件每次地定义，每个表每个事件每次只允许一个触发器，因此每个表最多支持6个触发器**。
+
+**MySQL触发器不支持`CALL`语句，这表示不能从触发器内调用存储过程。所需的存储过程代码需要复制到触发器中**。
+
+
+
+* 创建触发器
+
+在创建触发器时，需要给出4条信息：
+
+1. 唯一的触发器名;
+2. 触发器关联的表；
+3. 触发器应该响应的活动(`DELETE`、`INSERT`或`UPDATE`)；
+4. 触发器何时执行(处理之前或之后)。`AFTER` or`BEFORE`。
+
+```mysql
+CREATE TRIGGER 触发器名 AFTER INSERT ON 关联表名
+FOR EACH ROW SELECT '显示文本';
+# 这里的显示文本非必须，只是一个示例。类似语句将在每次成功插入数据后，显示"显示文本"。
+```
+
+
+
+* 删除触发器
+
+```mysql
+DROP TRIGGER 触发器名;
+```
+
+
+
+* INSERT触发器
+
+INSERT触发器在`INSERT`语句之前或之后执行。需要知道以下几点:
+
+1. 在INSERT触发器代码内，可引用一个名为NEW的虚拟表，访问被插入的行；
+2. 在BEFORE INSERT触发器中，NEW中的值也可以被更新(允许更改被插入的值)；
+3. 对于`AUTO_INCREMENT`列，NEW在`INSERT`执行之前包含0，在`INSERT`执行之后包含新的自动生成值。
+
+
+
+* DELETE触发器
+
+DELETE触发器在`DELETE`语句执行之前或之后执行。需要知道以下两点:
+
+1. 在`DELETE`触发器代码内，你可以引用一个名为OLD的虚拟表，访问被删除的行；
+2. `OLD`中的值全都是只读的，不能更新。
+
+```mysql
+CREATE TRIGGER deleteorder BEFORE DELETE ON orders
+FOR EACH ROW
+BEGIN 
+	INSERT INTO archive_orders(order_num,order_date,cust_id)
+	VALUES(OLD.order_num,OLD.order_date,OLD.cust_id)
+END;
+```
+
+说明：上述例子演示使用OLD虚拟表保存将要被删除的行到一个存档表中。同时，上述例子还是用了多语句触发器的技巧，使得触发器能够容纳多条语句。
+
+
+
+* UPDATE触发器
+
+UPDATE触发器在`UPDATE`语句执行之前或之后执行。需要知道以下几点：
+
+1. 在UPDATE触发器代码中，你可以引用一个名为OLD的虚拟表访问以前(UPDATE语句之前)的值，引用一个名为NEW的虚拟表访问新的更新的值；
+2. 在BEFORE UPDATE触发器中，NEW中的值可能也被更新(允许更改将用于`UPDATE`语句中的值)；
+3. OLD中的值全都是只读的，不能更新。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
